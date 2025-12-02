@@ -2,8 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle: Hemostasia Integrada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Simulador de Hemostasia</title>
     <style>
         :root {
             --bg-dark: #121212;
@@ -14,12 +16,15 @@
             --text-main: #dfe6e9;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             margin: 0;
             background-color: var(--bg-dark);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             color: var(--text-main);
-            height: 100vh;
+            height: 100vh; /* Altura total da viewport */
+            height: 100dvh; /* Altura dinâmica para mobile */
             width: 100vw;
             display: flex;
             flex-direction: column;
@@ -28,26 +33,27 @@
 
         /* --- 1. CABEÇALHO --- */
         header {
-            flex: 0 0 60px;
+            flex: 0 0 50px;
             background: #000;
             border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
+            padding: 0 15px;
             z-index: 10;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         h1 { 
-            font-size: 1.3rem; margin: 0; color: var(--highlight); 
+            font-size: 1rem; margin: 0; color: var(--highlight); 
             text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .step-display { 
-            font-size: 1.2rem; color: #fff; font-weight: 600;
-            background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.85rem; color: #fff; font-weight: 600;
+            background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 15px;
+            white-space: nowrap; margin-left: 10px;
         }
 
-        /* --- 2. CONTEÚDO --- */
+        /* --- 2. CONTEÚDO (FLEXÍVEL) --- */
         .main-container {
             flex: 1;
             display: flex;
@@ -55,7 +61,7 @@
             position: relative;
         }
 
-        /* ESQUERDA: FLUXOGRAMA */
+        /* LADO ESQUERDO: FLUXOGRAMA */
         .flowchart-panel {
             width: 35%;
             background: var(--panel-bg);
@@ -64,7 +70,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
         }
         
@@ -72,20 +78,20 @@
             width: 100%;
             display: flex;
             justify-content: space-around;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
         }
 
-        .path-title { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; position: absolute; top: -20px; width: 100%; text-align: center; }
+        .path-title { font-size: 0.65rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; position: absolute; top: -15px; width: 100%; text-align: center; }
 
         .node {
             background: var(--node-bg);
-            padding: 12px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
             border: 1px solid #444;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             text-align: center;
-            width: 110px;
+            width: 90px;
             transition: all 0.4s ease;
             opacity: 0.4;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -95,7 +101,7 @@
             opacity: 1;
             border-color: var(--highlight);
             background: rgba(0, 184, 148, 0.15);
-            box-shadow: 0 0 15px rgba(0, 184, 148, 0.3);
+            box-shadow: 0 0 10px rgba(0, 184, 148, 0.3);
             transform: scale(1.05);
             color: #fff; font-weight: bold;
         }
@@ -107,84 +113,119 @@
             background: rgba(255, 118, 117, 0.1);
         }
 
-        .arrow-down { font-size: 1.2rem; color: #555; margin: 5px 0; }
+        .arrow-down { font-size: 1rem; color: #555; margin: 2px 0; }
 
-        /* DIREITA: VISUAL */
+        /* LADO DIREITO: CANVAS */
         .visual-panel {
             width: 65%;
             position: relative;
             background: #000;
-            overflow: hidden;
+            overflow: hidden; 
         }
         canvas { display: block; width: 100%; height: 100%; }
 
+        /* Balão explicativo ajustável */
         .explanation-box {
             position: absolute;
-            top: 20px; left: 50%; transform: translateX(-50%);
-            width: 85%;
-            max-width: 800px;
-            background: rgba(20, 20, 20, 0.9);
-            border-left: 5px solid var(--highlight);
-            padding: 15px 25px;
+            top: 15px; left: 50%; transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(4px);
+            border-left: 4px solid var(--highlight);
+            padding: 12px;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             pointer-events: none;
             transition: all 0.3s ease;
+            z-index: 5;
         }
-        .exp-title { color: var(--highlight); font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        .exp-desc { color: #dfe6e9; font-size: 1rem; line-height: 1.5; }
+        .exp-title { color: var(--highlight); font-size: 0.95rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; }
+        .exp-desc { color: #dfe6e9; font-size: 0.85rem; line-height: 1.3; }
         .highlight-text { color: #ffeaa7; font-weight: bold; }
 
         .status-badge {
             position: absolute; bottom: 10px; right: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 12px; border-radius: 4px;
-            font-size: 0.8rem; color: #aaa;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px; border-radius: 4px;
+            font-size: 0.7rem; color: #ddd;
             border: 1px solid rgba(255,255,255,0.2);
             pointer-events: none;
+            backdrop-filter: blur(2px);
         }
-        .status-warn { color: #ff7675; border-color: #ff7675; }
+        .status-warn { color: #ff7675; border-color: #ff7675; background: rgba(255, 118, 117, 0.1); }
 
-        /* --- 3. RODAPÉ --- */
+        /* --- 3. RODAPÉ (CONTROLES) --- */
         .controls-bar {
-            flex: 0 0 80px;
+            flex: 0 0 auto;
             background: #111;
             border-top: 1px solid #333;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            padding: 0 20px;
+            gap: 10px;
+            padding: 10px 15px;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
             z-index: 20;
+            flex-wrap: wrap;
         }
 
         .drug-group {
-            display: flex; gap: 8px; padding: 8px; background: #222; border-radius: 10px; border: 1px solid #333;
+            display: flex; gap: 5px; padding: 4px; background: #222; border-radius: 8px; border: 1px solid #333;
         }
 
         button {
-            padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
-            font-family: 'Segoe UI', sans-serif;
+            padding: 10px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
+            font-family: 'Segoe UI', sans-serif; white-space: nowrap; font-size: 0.85rem;
+            touch-action: manipulation;
         }
-        .btn-drug { background: #3d3d3d; color: #ccc; font-size: 0.9rem; }
-        .btn-drug.active { background: #6c5ce7; color: white; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); }
+        .btn-drug { background: #3d3d3d; color: #ccc; font-size: 0.75rem; padding: 8px 10px;}
+        .btn-drug.active { background: #6c5ce7; color: white; box-shadow: 0 0 8px rgba(108, 92, 231, 0.5); }
         
-        .btn-main { background: #00b894; color: white; font-size: 1rem; min-width: 180px; text-transform: uppercase;}
-        .btn-main:hover { background: #00cec9; transform: translateY(-2px); }
+        .btn-main { background: #00b894; color: white; min-width: 120px; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .btn-main:active { transform: scale(0.95); }
         
-        .btn-reset { background: #636e72; color: white; }
-        .btn-reset:hover { background: #b2bec3; }
+        .btn-reset { background: #636e72; color: white; font-size: 0.8rem;}
 
+        /* --- ADAPTAÇÃO MOBILE (RESPONSIVIDADE) --- */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; }
+            .visual-panel {
+                width: 100%;
+                flex: 1;
+                height: 55%;
+                min-height: 250px;
+                order: 1;
+            }
+            .flowchart-panel {
+                width: 100%;
+                height: 45%;
+                order: 2;
+                border-right: none;
+                border-top: 1px solid #333;
+                padding: 15px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-content: flex-start;
+            }
+            .flowchart-panel .flow-section { margin-bottom: 10px; }
+            .controls-bar { padding: 8px; gap: 8px; }
+            .drug-group { width: 100%; justify-content: space-evenly; }
+            .btn-drug { flex: 1; }
+            .btn-main { width: 100%; padding: 12px; font-size: 1rem; }
+            .btn-reset { display: none; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Simulador Integrado</h1>
+        <h1>Simulador Hemostasia</h1>
         <div class="step-display" id="step-display">1. Homeostase</div>
     </header>
 
     <div class="main-container">
+        <!-- Esquerda (Desktop) / Baixo (Mobile): Fluxograma -->
         <div class="flowchart-panel">
             <div class="flow-section">
                 <div style="display:flex; flex-direction:column; align-items:center;">
@@ -221,6 +262,7 @@
             </div>
         </div>
 
+        <!-- Direita (Desktop) / Cima (Mobile): Canvas -->
         <div class="visual-panel">
             <canvas id="simCanvas"></canvas>
             <div class="explanation-box" id="info-box">
@@ -231,14 +273,15 @@
         </div>
     </div>
 
+    <!-- Rodapé -->
     <div class="controls-bar">
-        <button class="btn-reset" onclick="resetAll()">↺ Reiniciar</button>
+        <button class="btn-reset" onclick="resetAll()">↺</button>
         <div class="drug-group">
-            <button class="btn-drug" id="btn-aspirina" onclick="toggleDrug('aspirina')">💊 Aspirina</button>
-            <button class="btn-drug" id="btn-varfarina" onclick="toggleDrug('varfarina')">💊 Varfarina</button>
-            <button class="btn-drug" id="btn-heparina" onclick="toggleDrug('heparina')">💉 Heparina</button>
+            <button class="btn-drug" id="btn-aspirina" onclick="toggleDrug('aspirina')">Aspirina</button>
+            <button class="btn-drug" id="btn-varfarina" onclick="toggleDrug('varfarina')">Varfarina</button>
+            <button class="btn-drug" id="btn-heparina" onclick="toggleDrug('heparina')">Heparina</button>
         </div>
-        <button class="btn-main" id="btn-next" onclick="nextStep()">AVANÇAR FASE ➡</button>
+        <button class="btn-main" id="btn-next" onclick="nextStep()">AVANÇAR ➡</button>
     </div>
 
     <script>
@@ -246,8 +289,9 @@
         const ctx = canvas.getContext('2d');
         
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.offsetWidth;
-            canvas.height = canvas.parentElement.offsetHeight;
+            const parent = canvas.parentElement;
+            canvas.width = parent.offsetWidth;
+            canvas.height = parent.offsetHeight;
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -266,7 +310,7 @@
             { name: "6. Rede de Fibrina", desc: "Escrever explicação fisiológica", nodes: ["n-i", "n-fibrin"] },
             { name: "7. Fibrinólise", desc: "Escrever explicação fisiológica", nodes: [] }
         ];
-
+        
         function updateState() {
             document.getElementById('step-display').innerText = steps[currentStep].name;
             document.getElementById('info-title').innerHTML = steps[currentStep].name;
@@ -287,10 +331,7 @@
             if (drugs.aspirina && currentStep === 3) { log.innerText = "⚠️ Aspirina Bloqueando Adesão"; log.classList.add('status-warn'); }
             else if (drugs.heparina && currentStep === 5) { log.innerText = "⚠️ Heparina Bloqueando Trombina"; log.classList.add('status-warn'); }
             else if (drugs.varfarina && currentStep >= 4) { log.innerText = "⚠️ Varfarina: Cascata Inibida"; log.classList.add('status-warn'); }
-            
-            // NOVO AVISO PARA FIBRINA FRÁGIL
-            else if (drugs.aspirina && currentStep === 5) { log.innerText = "⚠️ Rede de Fibrina Instável (Sem base)"; log.classList.add('status-warn'); }
-            
+            else if (drugs.aspirina && currentStep === 5) { log.innerText = "⚠️ Fibrina Instável (Sem base)"; log.classList.add('status-warn'); }
             else { log.innerText = "Sistema Monitorando..."; }
         }
 
@@ -316,7 +357,7 @@
             if(currentStep < 6) currentStep++; else { currentStep = 0; resetEntities(); }
             const btn = document.getElementById('btn-next');
             if(currentStep === 6) { btn.innerText = "RESTAURAR ↻"; btn.style.background = "#6c5ce7"; } 
-            else { btn.innerText = "AVANÇAR FASE ➡"; btn.style.background = "#00b894"; }
+            else { btn.innerText = "AVANÇAR ➡"; btn.style.background = "#00b894"; }
             updateState();
         }
 
@@ -329,19 +370,23 @@
                 const WALL_TOP = H * 0.25; const WALL_BOT = H * 0.75;
                 this.x = -Math.random() * 200;
                 this.y = (WALL_TOP + 10) + Math.random() * ((WALL_BOT - 10) - (WALL_TOP + 10));
-                this.speed = 3 + Math.random();
+                this.speed = (3 + Math.random()) * (W/1000); 
                 this.state = 'flow';
-                if(this.type === 'rbc') { this.color = '#ff4757'; this.r = 10; } else { this.color = '#74b9ff'; this.r = 5; }
+                if(this.type === 'rbc') { this.color = '#ff4757'; this.r = Math.max(6, W * 0.012); } 
+                else { this.color = '#74b9ff'; this.r = Math.max(3, W * 0.006); }
             }
             update() {
                 const W = canvas.width; const H = canvas.height; const WALL_BOT = H * 0.75;
                 if(this.state === 'flow') {
                     this.x += this.speed; if(this.x > W + 50) this.reset();
                     if(this.type === 'plt' && currentStep >= 2 && currentStep < 6) {
-                        if(this.x > W/2 - 100 && this.x < W/2 + 100 && this.y > WALL_BOT - 50) {
+                        if(this.x > W*0.35 && this.x < W*0.65 && this.y > WALL_BOT - 50) {
                             let chance = drugs.aspirina ? 0 : 0.5;
                             if(Math.random() < chance) { 
-                                this.state = 'stuck'; this.x = (W/2 - 80) + Math.random() * 160; this.y = WALL_BOT - 5 + Math.random() * 30; this.color = '#a29bfe';
+                                this.state = 'stuck'; 
+                                this.x = (W/2 - W*0.1) + Math.random() * (W*0.2); 
+                                this.y = WALL_BOT - 5 + Math.random() * 30; 
+                                this.color = '#a29bfe';
                                 stuckPlateletCount++;
                             }
                         }
@@ -369,9 +414,9 @@
             constructor() { this.reset(); this.angle = Math.random() * Math.PI * 2; }
             reset() {
                 const W = canvas.width; const H = canvas.height; const WALL_BOT = H * 0.75;
-                this.x = W/2 - 100 + Math.random() * 200;
+                this.x = W/2 - (W*0.1) + Math.random() * (W*0.2);
                 this.y = WALL_BOT - 60 + Math.random() * 40;
-                this.baseR = 8 + Math.random() * 4;
+                this.baseR = Math.max(5, W * 0.008);
             }
             update() { this.angle += 0.05; this.r = this.baseR + Math.sin(this.angle) * 2; }
             draw() {
@@ -387,10 +432,10 @@
         class Debris {
             constructor() {
                 const W = canvas.width; const H = canvas.height; const WALL_BOT = H * 0.75;
-                this.x = W/2 - 100 + Math.random() * 200;
+                this.x = W/2 - (W*0.1) + Math.random() * (W*0.2);
                 this.y = WALL_BOT - 20 + Math.random() * 40;
-                this.r = 3 + Math.random() * 3;
-                this.speed = 2 + Math.random() * 3;
+                this.r = Math.random() * 4;
+                this.speed = (2 + Math.random() * 3) * (W/1000);
                 this.opacity = 1.0;
             }
             update() { this.x += this.speed; this.opacity -= 0.003; }
@@ -404,8 +449,10 @@
 
         function init() {
             particles = []; enzymes = []; debrisList = []; stuckPlateletCount = 0;
-            for(let i=0; i<60; i++) particles.push(new Particle('rbc'));
-            for(let i=0; i<40; i++) particles.push(new Particle('plt'));
+            const W = canvas.width;
+            let pCount = W < 600 ? 40 : 100; 
+            for(let i=0; i<pCount; i++) particles.push(new Particle('rbc'));
+            for(let i=0; i<pCount*0.7; i++) particles.push(new Particle('plt'));
             for(let i=0; i<15; i++) enzymes.push(new Enzyme());
             resizeCanvas();
             requestAnimationFrame(animate);
@@ -419,7 +466,7 @@
 
         function animate() {
             const W = canvas.width; const H = canvas.height;
-            const WALL_TOP = H * 0.25; const WALL_BOT = H * 0.75; const WALL_THICK = 40;
+            const WALL_TOP = H * 0.25; const WALL_BOT = H * 0.75; const WALL_THICK = H * 0.1; 
 
             ctx.clearRect(0, 0, W, H);
 
@@ -428,22 +475,21 @@
             ctx.fillStyle = '#ff7675'; ctx.fillRect(0, WALL_TOP - WALL_THICK, W, WALL_THICK);
             if(currentStep === 0) { ctx.fillRect(0, WALL_BOT, W, WALL_THICK); } 
             else {
-                const holeStart = W/2 - 100; const holeEnd = W/2 + 100;
+                const holeW = W * 0.25;
+                const holeStart = W/2 - holeW/2; const holeEnd = W/2 + holeW/2;
                 ctx.fillRect(0, WALL_BOT, holeStart, WALL_THICK); ctx.fillRect(holeEnd, WALL_BOT, W - holeEnd, WALL_THICK);
-                ctx.fillStyle = '#636e72'; ctx.fillRect(holeStart, WALL_BOT + 10, 200, 30);
+                ctx.fillStyle = '#636e72'; ctx.fillRect(holeStart, WALL_BOT + 10, holeW, 30);
                 
-                // Coágulo (Massa)
                 if(stuckPlateletCount > 0) {
-                    const massAlpha = Math.min(stuckPlateletCount / 40, 0.6);
+                    const massAlpha = Math.min(stuckPlateletCount / 30, 0.7);
                     ctx.fillStyle = `rgba(162, 155, 254, ${massAlpha})`;
-                    ctx.beginPath(); ctx.ellipse(W/2, WALL_BOT + 20, 100, 15 + (stuckPlateletCount * 0.8), 0, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(W/2, WALL_BOT + 15, holeW/2, 10 + (stuckPlateletCount * 0.5), 0, 0, Math.PI*2); ctx.fill();
                 }
-                ctx.fillStyle = '#fff'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText("COLÁGENO EXPOSTO", W/2, WALL_BOT + 30);
+                ctx.fillStyle = '#fff'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText("COLÁGENO", W/2, WALL_BOT + 25);
             }
 
             particles.forEach(p => { p.update(); p.draw(); });
 
-            // Efeitos Cascata
             if(currentStep === 3) {
                 ctx.save(); 
                 let numSparks, chance, sizeBase;
@@ -453,7 +499,7 @@
                 if (Math.random() > chance) {
                     ctx.fillStyle = '#fffbe8';
                     for (let i = 0; i < numSparks; i++) {
-                        const offsetX = (Math.random() - 0.5) * 180;
+                        const offsetX = (Math.random() - 0.5) * (W*0.2);
                         const offsetY = Math.random() * -25;
                         const size = sizeBase + Math.random() * 4;
                         ctx.beginPath(); ctx.arc(W / 2 + offsetX, WALL_BOT + offsetY, size, 0, Math.PI * 2); ctx.fill();
@@ -462,31 +508,26 @@
                 ctx.restore();
             }
 
-            // Trombina
             if(currentStep >= 4 && currentStep < 6) {
                 if (!drugs.varfarina) { enzymes.forEach(e => { e.update(); e.draw(); }); }
             }
 
-            // Fibrina (Rede)
             if(currentStep === 5) {
                 if (!drugs.heparina && !drugs.varfarina) {
-                    // SE ASPIRINA: Rede fina e fraca
-                    if (drugs.aspirina) {
-                        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-                    } else {
-                        // NORMAL: Rede forte
-                        ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
-                    }
+                    if (drugs.aspirina) { ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; } 
+                    else { ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2; }
                     
                     ctx.beginPath();
-                    for(let i=0; i<30; i++) {
-                        const x = W/2 - 100 + i*7; ctx.moveTo(x, WALL_BOT-20); ctx.lineTo(x+20, WALL_BOT+20); ctx.moveTo(x+20, WALL_BOT-20); ctx.lineTo(x, WALL_BOT+20);
+                    const holeW = W * 0.25;
+                    const startX = W/2 - holeW/2;
+                    for(let i=0; i<=10; i++) {
+                        const x = startX + (i * (holeW/10));
+                        ctx.moveTo(x, WALL_BOT-20); ctx.lineTo(x+20, WALL_BOT+20); ctx.moveTo(x+20, WALL_BOT-20); ctx.lineTo(x, WALL_BOT+20);
                     }
                     ctx.stroke();
                 }
             }
             
-            // Fibrinólise
             if(currentStep === 6) {
                 if (!drugs.varfarina && !drugs.heparina) {
                     if(Math.random() < 0.15) debrisList.push(new Debris());
