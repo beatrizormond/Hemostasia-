@@ -23,15 +23,13 @@
             background-color: var(--bg-dark);
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             color: var(--text-main);
-            height: 100vh; /* Altura total da viewport */
-            height: 100dvh; /* Altura dinâmica para mobile */
+            height: 100vh;
             width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- 1. CABEÇALHO --- */
         header {
             flex: 0 0 50px;
             background: #000;
@@ -53,7 +51,6 @@
             white-space: nowrap; margin-left: 10px;
         }
 
-        /* --- 2. CONTEÚDO (FLEXÍVEL) --- */
         .main-container {
             flex: 1;
             display: flex;
@@ -61,7 +58,6 @@
             position: relative;
         }
 
-        /* LADO ESQUERDO: FLUXOGRAMA */
         .flowchart-panel {
             width: 35%;
             background: var(--panel-bg);
@@ -115,7 +111,6 @@
 
         .arrow-down { font-size: 1rem; color: #555; margin: 2px 0; }
 
-        /* LADO DIREITO: CANVAS */
         .visual-panel {
             width: 65%;
             position: relative;
@@ -124,7 +119,6 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* Balão explicativo ajustável */
         .explanation-box {
             position: absolute;
             top: 15px; left: 50%; transform: translateX(-50%);
@@ -154,7 +148,6 @@
         }
         .status-warn { color: #ff7675; border-color: #ff7675; background: rgba(255, 118, 117, 0.1); }
 
-        /* --- 3. RODAPÉ (CONTROLES) --- */
         .controls-bar {
             flex: 0 0 auto;
             background: #111;
@@ -186,7 +179,6 @@
         
         .btn-reset { background: #636e72; color: white; font-size: 0.8rem;}
 
-        /* --- ADAPTAÇÃO MOBILE (RESPONSIVIDADE) --- */
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
             .visual-panel {
@@ -211,7 +203,7 @@
             .flowchart-panel .flow-section { margin-bottom: 10px; }
             .controls-bar { padding: 8px; gap: 8px; }
             .drug-group { width: 100%; justify-content: space-evenly; }
-            .btn-drug { flex: 1; }
+            .btn-drug { flex: 1; font-size: 0.7rem; padding: 8px 6px; } 
             .btn-main { width: 100%; padding: 12px; font-size: 1rem; }
             .btn-reset { display: none; }
         }
@@ -277,9 +269,9 @@
     <div class="controls-bar">
         <button class="btn-reset" onclick="resetAll()">↺</button>
         <div class="drug-group">
-            <button class="btn-drug" id="btn-aspirina" onclick="toggleDrug('aspirina')">Aspirina</button>
-            <button class="btn-drug" id="btn-varfarina" onclick="toggleDrug('varfarina')">Varfarina</button>
-            <button class="btn-drug" id="btn-heparina" onclick="toggleDrug('heparina')">Heparina</button>
+            <button class="btn-drug" id="btn-aspirina" onclick="toggleDrug('aspirina')">💊 Aspirina</button>
+            <button class="btn-drug" id="btn-varfarina" onclick="toggleDrug('varfarina')">💊 Varfarina</button>
+            <button class="btn-drug" id="btn-heparina" onclick="toggleDrug('heparina')">💉 Heparina</button>
         </div>
         <button class="btn-main" id="btn-next" onclick="nextStep()">AVANÇAR ➡</button>
     </div>
@@ -298,19 +290,19 @@
 
         let currentStep = 0;
         let drugs = { aspirina: false, varfarina: false, heparina: false };
-        let particles = [], enzymes = [], debrisList = [];
+        let particles = [], enzymes = [], debrisList = [], fibrinMesh = [];
         let stuckPlateletCount = 0;
 
         const steps = [
             { name: "1. Homeostase", desc: "O endotélio está íntegro. Secreta <span class='highlight-text'><b>Prostaciclina</b></span> e <span class='highlight-text'><b>Óxido nítrico (NO)</b></span> inibindo a adesão plaquetária. O fluxo de sangue é laminar", nodes: [] },
-            { name: "2. Lesão Vascular", desc: "Escrever explicação fisiológica", nodes: ["n-collagen", "n-tf"] },
-            { name: "3. Hemostasia Primária", desc: "Escrever explicação fisiológica", nodes: ["n-plt"] },
-            { name: "4. Cascatas (Int/Ext)", desc: "Escrever explicação fisiológica", nodes: ["n-xii", "n-xi", "n-ix", "n-vii"] },
-            { name: "5. Via Comum (Trombina)", desc: "Escrever explicação fisiológica", nodes: ["n-x", "n-ii"] },
-            { name: "6. Rede de Fibrina", desc: "Escrever explicação fisiológica", nodes: ["n-i", "n-fibrin"] },
-            { name: "7. Fibrinólise", desc: "Escrever explicação fisiológica", nodes: [] }
+            { name: "2. Lesão Vascular", desc: "O <span class='highlight-text'><b>endotélio</b></span> é rompido, expondo o <span class='highlight-text'><b>colágeno subendotelial</b></span> e liberando o <span class='highlight-text'><b>Fator Tecidual (FT)</b></span> no local da lesão. Ocorre vasoconstrição reflexa.", nodes: ["n-collagen", "n-tf"] },
+            { name: "3. Hemostasia Primária", desc: "Formação do <span class='highlight-text'><b>tampão plaquetário</b></span> através da adesão e agregação de plaquetas. <br><span class='highlight-text'>NOTA:</span> <b>Aspirina (ácido acetilsalicílico)</b> dificulta esta adesão.", nodes: ["n-plt"] },
+            { name: "4. Cascatas (Int/Ext)", desc: "A <span class='highlight-text'><b>Via Extrínseca</b></span> (ativada pelo FT) e a <span class='highlight-text'><b>Via Intrínseca</b></span> (ativada pelo colágeno) iniciam as sequências de ativação dos fatores de coagulação. <br><span class='highlight-text'>NOTA:</span> <b>Varfarina</b> inibe fatores da cascata.", nodes: ["n-xii", "n-xi", "n-ix", "n-vii"] },
+            { name: "5. Via Comum (Trombina)", desc: "Ponto de convergência onde o <span class='highlight-text'><b>Fator X ativado</b></span> forma o complexo que converte a <span class='highlight-text'><b>Protrombina</b></span> em <span class='highlight-text'><b>Trombina (IIa)</b></span>. <br><span class='highlight-text'>NOTA:</span> <b>Heparina</b> bloqueia a Trombina via Antitrombina III.", nodes: ["n-x", "n-ii"] },
+            { name: "6. Rede de Fibrina", desc: "A <span class='highlight-text'><b>Trombina</b></span> converte <span class='highlight-text'><b>Fibrinogênio</b></span> em monômeros de <span class='highlight-text'><b>Fibrina</b></span>, que polimerizam formando uma malha estável de coágulo. <br><span class='highlight-text'>NOTA:</span> Sem Trombina (Varfarina/Heparina), não há Fibrina.", nodes: ["n-i", "n-fibrin"] },
+            { name: "7. Fibrinólise", desc: "Ativação do sistema que converte <span class='highlight-text'><b>Plasminogênio</b></span> em <span class='highlight-text'><b>Plasmina</b></span>, enzima que degrada a rede de fibrina para restaurar a permeabilidade do vaso. O endotélio é restaurado.", nodes: [] }
         ];
-        
+
         function updateState() {
             document.getElementById('step-display').innerText = steps[currentStep].name;
             document.getElementById('info-title').innerHTML = steps[currentStep].name;
@@ -356,7 +348,7 @@
         function nextStep() {
             if(currentStep < 6) currentStep++; else { currentStep = 0; resetEntities(); }
             const btn = document.getElementById('btn-next');
-            if(currentStep === 6) { btn.innerText = "RESTAURAR ↻"; btn.style.background = "#6c5ce7"; } 
+            if(currentStep === 6) { btn.innerText = "RESTAURAR 🔄"; btn.style.background = "#6c5ce7"; } 
             else { btn.innerText = "AVANÇAR ➡"; btn.style.background = "#00b894"; }
             updateState();
         }
@@ -416,7 +408,8 @@
                 const W = canvas.width; const H = canvas.height; const WALL_BOT = H * 0.75;
                 this.x = W/2 - (W*0.1) + Math.random() * (W*0.2);
                 this.y = WALL_BOT - 60 + Math.random() * 40;
-                this.baseR = Math.max(5, W * 0.008);
+                // Aumento de 50% no raio base (era max 5, agora 8. Era W*0.008, agora 0.015)
+                this.baseR = Math.max(8, W * 0.015);
             }
             update() { this.angle += 0.05; this.r = this.baseR + Math.sin(this.angle) * 2; }
             draw() {
@@ -448,12 +441,23 @@
         }
 
         function init() {
-            particles = []; enzymes = []; debrisList = []; stuckPlateletCount = 0;
+            particles = []; enzymes = []; debrisList = []; fibrinMesh = []; stuckPlateletCount = 0;
             const W = canvas.width;
             let pCount = W < 600 ? 40 : 100; 
             for(let i=0; i<pCount; i++) particles.push(new Particle('rbc'));
             for(let i=0; i<pCount*0.7; i++) particles.push(new Particle('plt'));
             for(let i=0; i<15; i++) enzymes.push(new Enzyme());
+            
+            // Gerar malha de fibrina aleatória e responsiva (relativa ao tamanho do buraco)
+            for(let i=0; i<50; i++) {
+                fibrinMesh.push({
+                    relX: Math.random(), // 0 a 1 (posição horizontal relativa ao buraco)
+                    relY: Math.random(), // 0 a 1 (posição vertical relativa a banda de fundo)
+                    ang: Math.random() * Math.PI,
+                    len: 10 + Math.random() * 20
+                });
+            }
+
             resizeCanvas();
             requestAnimationFrame(animate);
         }
@@ -485,7 +489,7 @@
                     ctx.fillStyle = `rgba(162, 155, 254, ${massAlpha})`;
                     ctx.beginPath(); ctx.ellipse(W/2, WALL_BOT + 15, holeW/2, 10 + (stuckPlateletCount * 0.5), 0, 0, Math.PI*2); ctx.fill();
                 }
-                ctx.fillStyle = '#fff'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText("COLÁGENO", W/2, WALL_BOT + 25);
+                ctx.fillStyle = '#fff'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText("COLÁGENO EXPOSTO", W/2, WALL_BOT + 25);
             }
 
             particles.forEach(p => { p.update(); p.draw(); });
@@ -520,10 +524,14 @@
                     ctx.beginPath();
                     const holeW = W * 0.25;
                     const startX = W/2 - holeW/2;
-                    for(let i=0; i<=10; i++) {
-                        const x = startX + (i * (holeW/10));
-                        ctx.moveTo(x, WALL_BOT-20); ctx.lineTo(x+20, WALL_BOT+20); ctx.moveTo(x+20, WALL_BOT-20); ctx.lineTo(x, WALL_BOT+20);
-                    }
+                    
+                    // Desenha a rede aleatória (Fios entrelaçados)
+                    fibrinMesh.forEach(f => {
+                        const x = startX + f.relX * holeW;
+                        const y = (WALL_BOT - 15) + f.relY * 30; // Área do coágulo
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + Math.cos(f.ang)*f.len, y + Math.sin(f.ang)*f.len);
+                    });
                     ctx.stroke();
                 }
             }
@@ -544,5 +552,3 @@
     </script>
 </body>
 </html>
-
-
