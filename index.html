@@ -229,7 +229,11 @@
             .drug-group { 
                 order: 2; width: 100%; margin-top: 5px; 
             }
-            .btn-reset { display: none; } /* Remove reset no mobile pra economizar espaço */
+            .btn-reset { 
+                order: 3; /* No mobile, o botão voltar fica à direita ou escondido se preferir, aqui deixei visível mas menor */
+                padding: 12px;
+                font-size: 1rem;
+            } 
             
             /* Botão Avançar grande e visível */
             .btn-main { 
@@ -299,7 +303,9 @@
 
     <!-- Rodapé -->
     <div class="controls-bar">
-        <button class="btn-reset" onclick="resetAll()">↺</button>
+        <!-- BOTÃO VOLTAR AQUI -->
+        <button class="btn-reset" onclick="prevStep()">⬅</button>
+        
         <div class="drug-group">
             <button class="btn-drug" id="btn-aspirina" onclick="toggleDrug('aspirina')">💊 Aspirina</button>
             <button class="btn-drug" id="btn-varfarina" onclick="toggleDrug('varfarina')">💊 Varfarina</button>
@@ -384,6 +390,19 @@
             if(currentStep === 6) { btn.innerText = "RESTAURAR 🔄"; btn.style.background = "#6c5ce7"; } 
             else { btn.innerText = "AVANÇAR ➡"; btn.style.background = "#00b894"; }
             updateState();
+        }
+
+        // --- FUNÇÃO VOLTAR (NOVA) ---
+        function prevStep() {
+            if(currentStep > 0) {
+                currentStep--;
+                resetEntities(); // Reseta visual para o estado anterior
+                updateState();
+            }
+            // Garante que o botão de avançar volte ao normal se sairmos do fim
+            const btn = document.getElementById('btn-next');
+            btn.innerText = "AVANÇAR ➡"; 
+            btn.style.background = "#00b894";
         }
 
         function resetAll() { currentStep = 0; resetEntities(); updateState(); }
@@ -542,7 +561,7 @@
 
         function resetEntities() {
             particles.forEach(p => { p.state = 'flow'; p.reset(); });
-            enzymes.forEach(e => e.reset());
+            // Não resetamos enzimas pois elas se auto-ajustam no update
             debrisList = []; stuckPlateletCount = 0;
         }
 
